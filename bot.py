@@ -1,4 +1,7 @@
-from telegram import ReplyKeyboardMarkup, Update
+from telegram import (
+    Update,
+    ReplyKeyboardMarkup,
+)
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -9,146 +12,142 @@ from telegram.ext import (
 
 TOKEN = "8903643822:AAG8yp9ejdnF1yPV0lZR8hxpgB-MsfAvzZQ"
 
-contracts = {
-    "amz123": {
-        "name": "محمد أحمد سالم",
-        "phone": "0914800555",
-        "package": "Home 20 Mbps",
-        "expire": "15/06/2026",
-    },
-    "ahmed": {
-        "name": "أحمد علي",
-        "phone": "0921234567",
-        "package": "Home 40 Mbps",
-        "expire": "20/07/2026",
-    },
-    "amazon": {
-        "name": "مستخدم تجريبي",
-        "phone": "0911111111",
-        "package": "Home 60 Mbps",
-        "expire": "01/08/2026",
-    }
-}
-
-user_state = {}
-
+MAIN_MENU = [
+    ["👤 حسابي", "💳 تجديد الاشتراك"],
+    ["📦 تغيير الباقة", "💰 الرصيد"],
+    ["🎫 شحن كرت", "🧾 الفواتير"],
+    ["📊 الاستهلاك", "⚡ اختبار السرعة"],
+    ["🛠 الدعم الفني", "🎁 العروض الحالية"],
+    ["📡 الأبراج والتغطية", "📞 تواصل معنا"],
+    ["⚙️ الإعدادات"]
+]
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        ["📄 معلومات العقد"],
-        ["💳 الفواتير"],
-        ["📅 تجديد الاشتراك"],
-        ["🔄 تغيير الباقة"],
-        ["📞 التواصل معنا"],
-    ]
-
-    await update.message.reply_text(
-        "🤖 أمازون ليبيا للاتصالات والتقنية\n\nاختر الخدمة المطلوبة:",
-        reply_markup=ReplyKeyboardMarkup(
-            keyboard,
-            resize_keyboard=True
-        )
+    keyboard = ReplyKeyboardMarkup(
+        MAIN_MENU,
+        resize_keyboard=True
     )
 
+    await update.message.reply_text(
+        "🤖 مرحباً بك في نظام أمازون ليبيا للاتصالات والتقنية\n\n"
+        "اختر الخدمة المطلوبة:",
+        reply_markup=keyboard
+    )
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    text = update.message.text.strip()
+async def messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
 
-    if text == "📄 معلومات العقد":
-        user_state[user_id] = "contract"
-        await update.message.reply_text("✍️ أدخل اسم العقد:")
-        return
-
-    if text == "💳 الفواتير":
-        user_state[user_id] = "invoice"
-        await update.message.reply_text("✍️ أدخل اسم العقد:")
-        return
-
-    if text == "📅 تجديد الاشتراك":
-        user_state[user_id] = "renew"
-        await update.message.reply_text("✍️ أدخل اسم العقد:")
-        return
-
-    if text == "🔄 تغيير الباقة":
-        user_state[user_id] = "package"
-        await update.message.reply_text("✍️ أدخل اسم العقد:")
-        return
-
-    if text == "📞 التواصل معنا":
+    if text == "👤 حسابي":
         await update.message.reply_text(
-            "📱 0914800555\n"
-            "🌐 amznet.ly\n"
-            "🏢 أمازون ليبيا للاتصالات والتقنية"
+            "👤 بيانات الحساب\n\n"
+            "الاسم: محمد أحمد\n"
+            "رقم العقد: A12345\n"
+            "رقم الهاتف: 0912345678\n"
+            "المدينة: طرابلس\n"
+            "الباقة الحالية: أمازون 5 ميجا\n"
+            "الرصيد: 45 دينار\n"
+            "حالة الاشتراك: فعال\n"
+            "تاريخ الانتهاء: 2026/07/15"
         )
-        return
 
-    state = user_state.get(user_id)
+    elif text == "💳 تجديد الاشتراك":
+        await update.message.reply_text(
+            "✅ تم تجديد الاشتراك بنجاح لمدة شهر.\n\n"
+            "تاريخ الانتهاء الجديد: 2026/08/15"
+        )
 
-    if state:
-        contract = contracts.get(text.lower())
+    elif text == "📦 تغيير الباقة":
+        await update.message.reply_text(
+            "📦 تم تغيير الباقة إلى أمازون 10 ميجا بنجاح."
+        )
 
-        if not contract:
-            await update.message.reply_text(
-                "❌ اسم العقد غير موجود."
-            )
-            return
+    elif text == "💰 الرصيد":
+        await update.message.reply_text(
+            "💰 رصيدك الحالي: 45 دينار"
+        )
 
-        if state == "contract":
-            await update.message.reply_text(
-                f"👤 الاسم: {contract['name']}\n"
-                f"📱 الهاتف: {contract['phone']}\n"
-                f"📶 الباقة: {contract['package']}\n"
-                f"📅 الانتهاء: {contract['expire']}\n"
-                f"🟢 الحالة: نشط"
-            )
+    elif text == "🎫 شحن كرت":
+        await update.message.reply_text(
+            "✅ تم شحن 10 دينار بنجاح."
+        )
 
-        elif state == "invoice":
-            await update.message.reply_text(
-                "💳 الفواتير\n\n"
-                "فاتورة مايو\n"
-                "60 دينار\n"
-                "✅ مدفوعة\n\n"
-                "فاتورة يونيو\n"
-                "60 دينار\n"
-                "❌ غير مدفوعة"
-            )
+    elif text == "🧾 الفواتير":
+        await update.message.reply_text(
+            "🧾 آخر الفواتير\n\n"
+            "فاتورة مايو: مدفوعة\n"
+            "فاتورة يونيو: غير مدفوعة"
+        )
 
-        elif state == "renew":
-            await update.message.reply_text(
-                "📅 تم استلام طلب التجديد\n\n"
-                "مدة التجديد: شهر واحد\n"
-                "القيمة: 60 دينار\n\n"
-                "✅ تم تسجيل الطلب."
-            )
+    elif text == "📊 الاستهلاك":
+        await update.message.reply_text(
+            "📊 الاستهلاك الحالي\n\n"
+            "التحميل: 780 GB\n"
+            "الرفع: 95 GB\n"
+            "نسبة الاستخدام: 78%"
+        )
 
-        elif state == "package":
-            await update.message.reply_text(
-                "🔄 الباقات المتاحة\n\n"
-                "🏠 Home 20 Mbps\n"
-                "🏠 Home 40 Mbps\n"
-                "🏠 Home 60 Mbps\n\n"
-                "✅ تم إرسال طلب تغيير الباقة."
-            )
+    elif text == "⚡ اختبار السرعة":
+        await update.message.reply_text(
+            "⚡ نتيجة الاختبار\n\n"
+            "Download: 48 Mbps\n"
+            "Upload: 12 Mbps\n"
+            "Ping: 18 ms"
+        )
 
-        user_state.pop(user_id, None)
+    elif text == "🛠 الدعم الفني":
+        await update.message.reply_text(
+            "🎫 تم فتح تذكرة دعم\n"
+            "رقم التذكرة: #58241"
+        )
 
+    elif text == "🎁 العروض الحالية":
+        await update.message.reply_text(
+            "🎁 العروض الحالية\n\n"
+            "• خصم 20% على اشتراك 6 أشهر\n"
+            "• شهر مجاني عند الاشتراك السنوي"
+        )
+
+    elif text == "📡 الأبراج والتغطية":
+        await update.message.reply_text(
+            "📡 الأبراج المتاحة\n\n"
+            "طرابلس: ممتازة\n"
+            "مصراتة: جيدة جداً\n"
+            "الزاوية: جيدة"
+        )
+
+    elif text == "📞 تواصل معنا":
+        await update.message.reply_text(
+            "☎️ خدمة العملاء\n\n"
+            "0910000000\n"
+            "support@amazon.ly"
+        )
+
+    elif text == "⚙️ الإعدادات":
+        await update.message.reply_text(
+            "⚙️ الإعدادات\n\n"
+            "• تغيير اللغة\n"
+            "• الإشعارات\n"
+            "• تسجيل الخروج"
+        )
+
+    else:
+        await update.message.reply_text(
+            "اختر خياراً من القائمة."
+        )
 
 def main():
     app = Application.builder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-
     app.add_handler(
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,
-            handle_message
+            messages
         )
     )
 
-    print("Bot Running...")
+    print("Bot Started...")
     app.run_polling()
-
 
 if __name__ == "__main__":
     main()
