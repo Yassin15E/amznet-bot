@@ -1,4 +1,4 @@
- from telegram import ReplyKeyboardMarkup, Update
+from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -7,7 +7,7 @@ from telegram.ext import (
     filters,
 )
 
-TOKEN ="8903643822:AAG8yp9ejdnF1yPV0lZR8hxpgB-MsfAvzZQ"
+TOKEN = "8903643822:AAG8yp9ejdnF1yPV0lZR8hxpgB-MsfAvzZQ"
 
 contracts = {
     "amz123": {
@@ -22,53 +22,59 @@ contracts = {
         "package": "Home 40 Mbps",
         "expire": "20/07/2026",
     },
+    "amazon": {
+        "name": "مستخدم تجريبي",
+        "phone": "0911111111",
+        "package": "Home 60 Mbps",
+        "expire": "01/08/2026",
+    }
 }
 
 user_state = {}
 
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         ["📄 معلومات العقد"],
+        ["💳 الفواتير"],
         ["📅 تجديد الاشتراك"],
         ["🔄 تغيير الباقة"],
-        ["💳 الفواتير"],
         ["📞 التواصل معنا"],
     ]
 
     await update.message.reply_text(
         "🤖 أمازون ليبيا للاتصالات والتقنية\n\nاختر الخدمة المطلوبة:",
-        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True),
+        reply_markup=ReplyKeyboardMarkup(
+            keyboard,
+            resize_keyboard=True
+        )
     )
+
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    text = update.message.text
+    text = update.message.text.strip()
 
-    # معلومات العقد
     if text == "📄 معلومات العقد":
-        user_state[user_id] = "contract_info"
+        user_state[user_id] = "contract"
         await update.message.reply_text("✍️ أدخل اسم العقد:")
         return
 
-    # الفواتير
     if text == "💳 الفواتير":
         user_state[user_id] = "invoice"
         await update.message.reply_text("✍️ أدخل اسم العقد:")
         return
 
-    # تغيير الباقة
-    if text == "🔄 تغيير الباقة":
-        user_state[user_id] = "change_package"
-        await update.message.reply_text("✍️ أدخل اسم العقد:")
-        return
-
-    # تجديد الاشتراك
     if text == "📅 تجديد الاشتراك":
         user_state[user_id] = "renew"
         await update.message.reply_text("✍️ أدخل اسم العقد:")
         return
 
-    # التواصل
+    if text == "🔄 تغيير الباقة":
+        user_state[user_id] = "package"
+        await update.message.reply_text("✍️ أدخل اسم العقد:")
+        return
+
     if text == "📞 التواصل معنا":
         await update.message.reply_text(
             "📱 0914800555\n"
@@ -79,9 +85,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     state = user_state.get(user_id)
 
-    # التحقق من العقد
-    if state in ["contract_info", "invoice", "change_package", "renew"]:
-
+    if state:
         contract = contracts.get(text.lower())
 
         if not contract:
@@ -90,10 +94,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-        if state == "contract_info":
+        if state == "contract":
             await update.message.reply_text(
                 f"👤 الاسم: {contract['name']}\n"
-                f"🆔 العقد: {text}\n"
                 f"📱 الهاتف: {contract['phone']}\n"
                 f"📶 الباقة: {contract['package']}\n"
                 f"📅 الانتهاء: {contract['expire']}\n"
@@ -111,7 +114,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "❌ غير مدفوعة"
             )
 
-        elif state == "change_package":
+        elif state == "renew":
+            await update.message.reply_text(
+                "📅 تم استلام طلب التجديد\n\n"
+                "مدة التجديد: شهر واحد\n"
+                "القيمة: 60 دينار\n\n"
+                "✅ تم تسجيل الطلب."
+            )
+
+        elif state == "package":
             await update.message.reply_text(
                 "🔄 الباقات المتاحة\n\n"
                 "🏠 Home 20 Mbps\n"
@@ -120,23 +131,24 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "✅ تم إرسال طلب تغيير الباقة."
             )
 
-        elif state == "renew":
-            await update.message.reply_text(
-                "📅 التجديد\n\n"
-                "شهر واحد - 60 دينار\n"
-                "3 أشهر - 170 دينار\n"
-                "6 أشهر - 330 دينار\n\n"
-                "✅ تم استلام طلب التجديد."
-            )
-
         user_state.pop(user_id, None)
 
-app = Application.builder().token(TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(
-    MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
-)
+def main():
+    app = Application.builder().token(TOKEN).build()
 
-print("Bot Running...")
-app.run_polling()
+    app.add_handler(CommandHandler("start", start))
+
+    app.add_handler(
+        MessageHandler(
+            filters.TEXT & ~filters.COMMAND,
+            handle_message
+        )
+    )
+
+    print("Bot Running...")
+    app.run_polling()
+
+
+if __name__ == "__main__":
+    main()
